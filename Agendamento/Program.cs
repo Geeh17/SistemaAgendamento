@@ -1,33 +1,64 @@
-﻿using Microsoft.EntityFrameworkCore;
 using Agendamento.Data;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
+using Agendamento.Extensions;
+using Agendamento.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona os serviços ao contêiner
-builder.Services.AddControllers();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+const string CorsPolicyName = "FrontendPolicy";
+
+// ---------- Serviços ----------
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("A connection string 'DefaultConnection' não foi configurada em appsettings.json.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Adiciona Swagger
-builder.Services.AddSwaggerGen();
+builder.Services.AddApplicationServices();
+builder.Services.AddSwaggerDocumentation();
+builder.Services.AddCorsPolicy(CorsPolicyName);
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Configura o middleware
+// ---------- Banco de dados ----------
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DbSeeder.EnsureSeeded(context);
+}
+
+// ---------- Pipeline ----------
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agendamento API v1"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agendamento API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
+
+app.UseHttpsRedirection();
+app.UseCors(CorsPolicyName);
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseRouting();
 app.MapControllers();
-app.MapGet("/", () => "Bem-vindo ao Sistema de Agendamento!");
+
+// Serve o front-end (wwwroot/index.html) em qualquer rota não reconhecida pela API,
+// para que o roteamento do lado do cliente funcione ao atualizar a página.
+app.MapFallbackToFile("index.html");
 
 app.Run();

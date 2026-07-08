@@ -17,15 +17,27 @@ namespace Agendamento.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Titulo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Descricao = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Data = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Titulo = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Descricao = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Local = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    DataAgendamento = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DataCriacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tarefas", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tarefas_DataAgendamento",
+                table: "Tarefas",
+                column: "DataAgendamento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tarefas_Status",
+                table: "Tarefas",
+                column: "Status");
         }
 
         /// <inheritdoc />

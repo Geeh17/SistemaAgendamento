@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda — Sistema de Agendamento</title>
+<meta name="description" content="Painel de gestão de agendamentos, compromissos e tarefas." />
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">A</span>
+      <div class="brand-text">
+        <span class="brand-name">Agenda</span>
+        <span class="brand-sub">Sistema de Agendamento</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item is-active" href="#" data-nav="agenda">
+        <i class="nav-icon" data-icon="calendar"></i>
+        <span>Agendamentos</span>
+      </a>
+      <a class="nav-item" href="/swagger" target="_blank" rel="noopener" data-nav="api">
+        <i class="nav-icon" data-icon="api"></i>
+        <span>Documentação da API</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <p>Sistema de Agendamento</p>
+      <p class="sidebar-foot-muted">v2.0 &middot; API + Painel</p>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <header class="topbar">
+      <div>
+        <h1>Agendamentos</h1>
+        <p class="topbar-sub">Acompanhe, organize e confirme os compromissos da equipe.</p>
+      </div>
+      <button class="btn btn-primary" id="btn-novo" type="button">
+        <i class="nav-icon" data-icon="plus"></i>
+        Novo agendamento
+      </button>
+    </header>
+
+    <section class="stats" id="stats" aria-label="Resumo dos agendamentos">
+      <div class="stat" data-stat="total">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat" data-stat="pendentes">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Pendentes</span>
+      </div>
+      <div class="stat" data-stat="confirmados">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Confirmados</span>
+      </div>
+      <div class="stat" data-stat="concluidos">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Concluídos</span>
+      </div>
+      <div class="stat" data-stat="proximos">
+        <span class="stat-value">—</span>
+        <span class="stat-label">Próximos 7 dias</span>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="field field-search">
+        <i class="nav-icon" data-icon="search"></i>
+        <input type="text" id="busca" placeholder="Buscar por título..." autocomplete="off" />
+      </div>
+
+      <select id="filtro-status" class="field-select" aria-label="Filtrar por status">
+        <option value="">Todos os status</option>
+        <option value="Pendente">Pendente</option>
+        <option value="Confirmado">Confirmado</option>
+        <option value="EmAndamento">Em andamento</option>
+        <option value="Concluido">Concluído</option>
+        <option value="Cancelado">Cancelado</option>
+      </select>
+
+      <div class="quick-filters" role="group" aria-label="Atalhos de período">
+        <button class="chip is-active" type="button" data-periodo="todos">Todos</button>
+        <button class="chip" type="button" data-periodo="hoje">Hoje</button>
+        <button class="chip" type="button" data-periodo="semana">Próximos 7 dias</button>
+      </div>
+    </section>
+
+    <section class="ledger-wrap">
+      <div class="ledger-head">
+        <span class="col-data">Data / hora</span>
+        <span class="col-titulo">Agendamento</span>
+        <span class="col-local">Local</span>
+        <span class="col-status">Status</span>
+        <span class="col-acoes" aria-hidden="true"></span>
+      </div>
+
+      <div id="ledger-body" class="ledger-body">
+        <div class="ledger-loading" id="ledger-loading">Carregando agendamentos...</div>
+      </div>
+
+      <div id="ledger-empty" class="ledger-empty" hidden>
+        <p class="empty-title">Nenhum agendamento encontrado</p>
+        <p class="empty-sub">Ajuste os filtros ou crie um novo agendamento para começar.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="overlay" id="overlay" hidden></div>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <form id="form-tarefa" novalidate>
+    <div class="drawer-head">
+      <h2 id="drawer-title">Novo agendamento</h2>
+      <button type="button" class="drawer-close" id="drawer-close" aria-label="Fechar">×</button>
+    </div>
+
+    <input type="hidden" id="f-id" />
+
+    <div class="form-group">
+      <label for="f-titulo">Título</label>
+      <input type="text" id="f-titulo" maxlength="150" required placeholder="Ex.: Consulta com cliente" />
+      <span class="form-error" id="err-titulo"></span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="f-data">Data</label>
+        <input type="date" id="f-data" required />
+      </div>
+      <div class="form-group">
+        <label for="f-hora">Hora</label>
+        <input type="time" id="f-hora" required />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="f-local">Local</label>
+      <input type="text" id="f-local" maxlength="150" placeholder="Ex.: Sala 2, ligação, online..." />
+    </div>
+
+    <div class="form-group">
+      <label for="f-descricao">Descrição</label>
+      <textarea id="f-descricao" maxlength="1000" rows="4" placeholder="Detalhes do compromisso (opcional)"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="f-status">Status</label>
+      <select id="f-status">
+        <option value="Pendente">Pendente</option>
+        <option value="Confirmado">Confirmado</option>
+        <option value="EmAndamento">Em andamento</option>
+        <option value="Concluido">Concluído</option>
+        <option value="Cancelado">Cancelado</option>
+      </select>
+    </div>
+
+    <div class="drawer-actions">
+      <button type="button" class="btn btn-ghost" id="btn-excluir" hidden>Excluir</button>
+      <div class="drawer-actions-right">
+        <button type="button" class="btn btn-secondary" id="btn-cancelar">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar agendamento</button>
+      </div>
+    </div>
+  </form>
+</aside>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
