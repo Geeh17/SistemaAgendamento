@@ -2,16 +2,19 @@ using Agendamento.DTOs;
 using Agendamento.Models;
 using Agendamento.Repositories;
 using Agendamento.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agendamento.Controllers
 {
     /// <summary>
     /// Endpoints para gerenciamento de agendamentos (tarefas).
+    /// Requer autenticação via JWT (ver <see cref="AuthController"/>).
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class TarefasController : ControllerBase
     {
         private readonly ITarefaService _service;

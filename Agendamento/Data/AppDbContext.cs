@@ -9,6 +9,8 @@ namespace Agendamento.Data
 
         public DbSet<Tarefa> Tarefas => Set<Tarefa>();
 
+        public DbSet<Usuario> Usuarios => Set<Usuario>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -23,6 +25,16 @@ namespace Agendamento.Data
                 entity.Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
                 entity.HasIndex(t => t.DataAgendamento);
                 entity.HasIndex(t => t.Status);
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.ToTable("Usuarios");
+                entity.HasKey(u => u.Id);
+                entity.Property(u => u.NomeUsuario).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.SenhaHash).IsRequired();
+                entity.Property(u => u.Papel).IsRequired().HasMaxLength(50);
+                entity.HasIndex(u => u.NomeUsuario).IsUnique();
             });
         }
     }

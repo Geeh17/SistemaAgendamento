@@ -1,6 +1,8 @@
 using Agendamento.Data;
 using Agendamento.Extensions;
 using Agendamento.Middleware;
+using Agendamento.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddApplicationServices();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddCorsPolicy(CorsPolicyName);
 builder.Services.AddEndpointsApiExplorer();
@@ -32,7 +35,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    DbSeeder.EnsureSeeded(context);
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<Usuario>>();
+    DbSeeder.EnsureSeeded(context, passwordHasher, builder.Configuration);
 }
 
 // ---------- Pipeline ----------
@@ -55,6 +59,10 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 // Serve o front-end (wwwroot/index.html) em qualquer rota não reconhecida pela API,

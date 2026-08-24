@@ -2,6 +2,45 @@
   "use strict";
 
   const API_BASE = "/api/Tarefas";
+  const AUTH_BASE = "/api/Auth";
+  const TOKEN_STORAGE_KEY = "agendamento.auth";
+
+  function getSessao() {
+    try {
+      const raw = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function setSessao(sessao) {
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(sessao));
+  }
+
+  function limparSessao() {
+    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  }
+
+  // Wrapper de fetch que injeta o header Authorization e trata expiração/401
+  // redirecionando de volta para a tela de login.
+  async function apiFetch(url, options = {}) {
+    const sessao = getSessao();
+    const headers = new Headers(options.headers || {});
+    if (sessao?.token) {
+      headers.set("Authorization", `Bearer ${sessao.token}`);
+    }
+
+    const resp = await fetch(url, { ...options, headers });
+
+    if (resp.status === 401) {
+      limparSessao();
+      mostrarLogin("Sua sessão expirou. Entre novamente.");
+      throw new Error("Sessão expirada.");
+    }
+
+    return resp;
+  }
 
   const ICONS = {
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
@@ -43,9 +82,85 @@
     cacheEls();
     paintIcons();
     bindEvents();
+    bindAuthEvents();
+
+    const sessao = getSessao();
+    if (sessao?.token) {
+      iniciarApp(sessao);
+    } else {
+      mostrarLogin();
+    }
+  });
+
+  function bindAuthEvents() {
+    els.formLogin = document.getElementById("form-login");
+    els.loginUsuario = document.getElementById("login-usuario");
+    els.loginSenha = document.getElementById("login-senha");
+    els.loginErro = document.getElementById("login-erro");
+    els.btnLogin = document.getElementById("btn-login");
+    els.btnLogout = document.getElementById("btn-logout");
+    els.loginScreen = document.getElementById("login-screen");
+    els.appRoot = document.getElementById("app-root");
+    els.usuarioLogado = document.getElementById("usuario-logado");
+
+    els.formLogin.addEventListener("submit", handleLogin);
+    els.btnLogout.addEventListener("click", handleLogout);
+  }
+
+  async function handleLogin(ev) {
+    ev.preventDefault();
+    els.loginErro.textContent = "";
+    els.btnLogin.disabled = true;
+
+    try {
+      const resp = await fetch(`${AUTH_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomeUsuario: els.loginUsuario.value.trim(),
+          senha: els.loginSenha.value
+        })
+      });
+
+      if (!resp.ok) {
+        const erro = await extrairErro(resp);
+        throw new Error(erro);
+      }
+
+      const sessao = await resp.json();
+      setSessao(sessao);
+      els.loginSenha.value = "";
+      iniciarApp(sessao);
+    } catch (err) {
+      els.loginErro.textContent = err.message || "Usuário ou senha inválidos.";
+    } finally {
+      els.btnLogin.disabled = false;
+    }
+  }
+
+  function handleLogout() {
+    limparSessao();
+    mostrarLogin();
+  }
+
+  function iniciarApp(sessao) {
+    els.loginScreen.hidden = true;
+    els.appRoot.hidden = false;
+    if (els.usuarioLogado) {
+      els.usuarioLogado.textContent = sessao.nomeUsuario || "Sistema de Agendamento";
+    }
     carregarEstatisticas();
     carregarTarefas();
-  });
+  }
+
+  function mostrarLogin(mensagem) {
+    els.appRoot.hidden = true;
+    els.loginScreen.hidden = false;
+    if (mensagem) {
+      els.loginErro.textContent = mensagem;
+    }
+    els.loginUsuario?.focus();
+  }
 
   function cacheEls() {
     els.ledgerBody = document.getElementById("ledger-body");
@@ -140,7 +255,7 @@
       if (dataInicio) params.set("dataInicio", dataInicio);
       if (dataFim) params.set("dataFim", dataFim);
 
-      const resp = await fetch(`${API_BASE}?${params.toString()}`);
+      const resp = await apiFetch(`${API_BASE}?${params.toString()}`);
       if (!resp.ok) throw new Error("Falha ao carregar agendamentos.");
       const data = await resp.json();
 
@@ -156,7 +271,7 @@
 
   async function carregarEstatisticas() {
     try {
-      const resp = await fetch(`${API_BASE}/estatisticas`);
+      const resp = await apiFetch(`${API_BASE}/estatisticas`);
       if (!resp.ok) throw new Error("Falha ao carregar estatísticas.");
       const stats = await resp.json();
 
@@ -327,13 +442,13 @@
     try {
       let resp;
       if (id) {
-        resp = await fetch(`${API_BASE}/${id}`, {
+        resp = await apiFetch(`${API_BASE}/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
       } else {
-        resp = await fetch(API_BASE, {
+        resp = await apiFetch(API_BASE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -374,7 +489,7 @@
 
   async function excluirTarefa(id) {
     try {
-      const resp = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const resp = await apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
       if (!resp.ok && resp.status !== 204) {
         const erro = await extrairErro(resp);
         throw new Error(erro);

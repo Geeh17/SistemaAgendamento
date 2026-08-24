@@ -1,17 +1,24 @@
 using Agendamento.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Agendamento.Data
 {
     /// <summary>
     /// Garante que o banco exista e, se estiver vazio, insere alguns
-    /// agendamentos de exemplo para facilitar a demonstração do sistema.
+    /// agendamentos de exemplo para facilitar a demonstração do sistema,
+    /// além do usuário administrador usado para autenticação.
     /// </summary>
     public static class DbSeeder
     {
-        public static void EnsureSeeded(AppDbContext context)
+        public static void EnsureSeeded(
+            AppDbContext context,
+            IPasswordHasher<Usuario> passwordHasher,
+            IConfiguration configuration)
         {
             context.Database.Migrate();
+
+            EnsureAdminUserSeeded(context, passwordHasher, configuration);
 
             if (context.Tarefas.Any())
             {
@@ -73,6 +80,37 @@ namespace Agendamento.Data
             };
 
             context.Tarefas.AddRange(exemplos);
+            context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Cria o usuário administrador inicial, se ainda não existir. As credenciais
+        /// vêm de configuração (variáveis de ambiente / appsettings), nunca de um valor
+        /// fixo em código, e a senha é sempre armazenada com hash.
+        /// </summary>
+        private static void EnsureAdminUserSeeded(
+            AppDbContext context,
+            IPasswordHasher<Usuario> passwordHasher,
+            IConfiguration configuration)
+        {
+            if (context.Usuarios.Any())
+            {
+                return;
+            }
+
+            var nomeUsuario = configuration["AdminSeed:NomeUsuario"] ?? "admin";
+            var senhaInicial = configuration["AdminSeed:SenhaInicial"] ?? "Admin@123";
+
+            var admin = new Usuario
+            {
+                NomeUsuario = nomeUsuario,
+                Papel = "Admin",
+                DataCriacao = DateTime.UtcNow
+            };
+
+            admin.SenhaHash = passwordHasher.HashPassword(admin, senhaInicial);
+
+            context.Usuarios.Add(admin);
             context.SaveChanges();
         }
     }

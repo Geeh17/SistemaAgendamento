@@ -13,7 +13,34 @@
 </head>
 <body>
 
-<div class="app">
+<div class="login-screen" id="login-screen" hidden>
+  <form class="login-card" id="form-login" novalidate>
+    <div class="brand login-brand">
+      <span class="brand-mark">A</span>
+      <div class="brand-text">
+        <span class="brand-name">Agenda</span>
+        <span class="brand-sub">Sistema de Agendamento</span>
+      </div>
+    </div>
+    <h1 class="login-title">Entrar</h1>
+    <p class="login-sub">Informe suas credenciais para acessar o painel.</p>
+
+    <div class="form-group">
+      <label for="login-usuario">Usuário</label>
+      <input type="text" id="login-usuario" autocomplete="username" required />
+    </div>
+
+    <div class="form-group">
+      <label for="login-senha">Senha</label>
+      <input type="password" id="login-senha" autocomplete="current-password" required />
+      <span class="form-error" id="login-erro"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary login-btn" id="btn-login">Entrar</button>
+  </form>
+</div>
+
+<div class="app" id="app-root" hidden>
 
   <aside class="sidebar">
     <div class="brand">
@@ -36,8 +63,9 @@
     </nav>
 
     <div class="sidebar-foot">
-      <p>Sistema de Agendamento</p>
+      <p id="usuario-logado">Sistema de Agendamento</p>
       <p class="sidebar-foot-muted">v2.0 &middot; API + Painel</p>
+      <button type="button" class="btn btn-ghost logout-btn" id="btn-logout">Sair</button>
     </div>
   </aside>
 

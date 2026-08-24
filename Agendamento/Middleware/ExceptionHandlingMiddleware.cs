@@ -44,6 +44,7 @@ namespace Agendamento.Middleware
             {
                 NotFoundException => (HttpStatusCode.NotFound, "Recurso não encontrado"),
                 BusinessRuleException => (HttpStatusCode.UnprocessableEntity, "Regra de negócio violada"),
+                AuthenticationFailedException => (HttpStatusCode.Unauthorized, "Falha na autenticação"),
                 ArgumentException => (HttpStatusCode.BadRequest, "Requisição inválida"),
                 _ => (HttpStatusCode.InternalServerError, "Erro interno do servidor")
             };

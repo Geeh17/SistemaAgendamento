@@ -58,19 +58,94 @@ pressione F5. O navegador abre automaticamente no painel.
 
 ```
 Agendamento/
-├── Controllers/        Endpoints HTTP (TarefasController)
-├── Services/            Regras de negócio + exceções de domínio
+├── Controllers/        Endpoints HTTP (TarefasController, AuthController)
+├── Services/            Regras de negócio + exceções de domínio + autenticação (Services/Auth)
 ├── Repositories/        Acesso a dados via EF Core
-├── Data/                 DbContext + seed de dados de exemplo
-├── Models/               Entidade Tarefa e enum StatusTarefa
-├── DTOs/                 Contratos de entrada/saída da API
+├── Data/                 DbContext + seed de dados de exemplo e do usuário admin
+├── Models/               Entidades (Tarefa, Usuario) e enum StatusTarefa
+├── DTOs/                 Contratos de entrada/saída da API (incl. DTOs/Auth)
 ├── Middleware/           Tratamento global de exceções
-├── Extensions/           Registro de serviços (DI, Swagger, CORS)
-└── wwwroot/              Front-end (HTML/CSS/JS) do painel
+├── Extensions/           Registro de serviços (DI, Swagger, CORS, JWT)
+├── Migrations/           Migrations do EF Core (Tarefas, Usuarios)
+└── wwwroot/              Front-end (HTML/CSS/JS) do painel, com tela de login
+
+Agendamento.Tests/
+└── Services/             Testes xUnit para TarefaService
 ```
 
 ## Próximos passos sugeridos
 
-- Autenticação/autorização (ex.: JWT) se o sistema for exposto publicamente.
-- Testes automatizados (xUnit) para `TarefaService`.
+- ~~Autenticação/autorização (ex.: JWT) se o sistema for exposto publicamente.~~ ✅ Implementado — ver seção [Autenticação](#autenticação-jwt) abaixo.
+- ~~Testes automatizados (xUnit) para `TarefaService`.~~ ✅ Implementado — ver seção [Testes automatizados](#testes-automatizados) abaixo.
 - Deploy como container Docker (o SQLite facilita: um único arquivo de dados).
+
+## Autenticação (JWT)
+
+A API agora exige um token JWT em todos os endpoints de `/api/Tarefas`. O painel web
+(`wwwroot/`) já foi adaptado: ele mostra uma tela de login antes de exibir a agenda e
+anexa o token automaticamente em cada chamada.
+
+**Login**
+
+```
+POST /api/Auth/login
+Content-Type: application/json
+
+{
+  "nomeUsuario": "admin",
+  "senha": "Admin@123"
+}
+```
+
+Resposta:
+
+```json
+{
+  "token": "eyJhbGciOi...",
+  "expiraEm": "2026-08-24T13:00:00Z",
+  "nomeUsuario": "admin",
+  "papel": "Admin"
+}
+```
+
+Use o token nas chamadas subsequentes: `Authorization: Bearer {token}`. No Swagger
+(`/swagger`), clique em **Authorize** e cole `Bearer {token}`.
+
+**Usuário administrador inicial**
+
+Na primeira execução, um usuário administrador é criado automaticamente com base nas
+chaves `AdminSeed:NomeUsuario` / `AdminSeed:SenhaInicial` do `appsettings.json`
+(por padrão, `admin` / `Admin@123`). A senha é sempre armazenada com hash
+(`PasswordHasher<Usuario>`) — nunca em texto puro.
+
+**Configuração (`appsettings.json` → seção `Jwt`)**
+
+| Chave                | Descrição                                                        |
+|-----------------------|-------------------------------------------------------------------|
+| `Jwt:Key`              | Chave de assinatura (mín. 32 caracteres). **Troque em produção** e prefira uma variável de ambiente / cofre de segredos em vez de deixar fixa no arquivo. |
+| `Jwt:Issuer`           | Emissor do token.                                                  |
+| `Jwt:Audience`         | Audiência esperada do token.                                       |
+| `Jwt:ExpiracaoMinutos` | Tempo de vida do token, em minutos (padrão: 60).                   |
+
+> ⚠️ O valor incluído em `appsettings.json` é apenas para desenvolvimento local. Antes de
+> expor a API publicamente, gere uma chave própria (ex.: `openssl rand -base64 48`) e
+> troque a senha inicial do usuário `admin`.
+
+Como a tabela `Usuarios` é criada via migration (`AddUsuarios`) e o `DbSeeder` roda
+`context.Database.Migrate()` na inicialização, basta rodar `dotnet run` normalmente —
+nenhum passo manual adicional é necessário em bancos novos. Bancos já existentes de uma
+versão anterior deste projeto também recebem a nova tabela automaticamente na próxima
+inicialização, graças à migration.
+
+## Testes automatizados
+
+O projeto `Agendamento.Tests` (xUnit + Moq + FluentAssertions) cobre as regras de
+negócio de `TarefaService`: busca por id (encontrado/não encontrado), criação
+(normalização de campos), atualização, remoção, listagem/paginação (incluindo os
+limites de página e tamanho de página) e o cálculo de estatísticas do painel.
+
+```bash
+cd Agendamento.Tests
+dotnet test
+```
+
