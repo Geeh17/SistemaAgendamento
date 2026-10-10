@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{AA01EFAD-F6FD-4C2F-9A8D-F17D55968AD3}|Agendamento\\Agendamento.csproj|c:\\users\\geraldo luiz\\desktop\\projetos pessoais\\agendamento\\agendamento\\dtos\\tarefaresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AA01EFAD-F6FD-4C2F-9A8D-F17D55968AD3}|Agendamento\\Agendamento.csproj|solutionrelative:agendamento\\dtos\\tarefaresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{AA01EFAD-F6FD-4C2F-9A8D-F17D55968AD3}|Agendamento\\Agendamento.csproj|c:\\users\\geraldo luiz\\desktop\\projetos pessoais\\agendamento\\agendamento\\data\\dbseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AA01EFAD-F6FD-4C2F-9A8D-F17D55968AD3}|Agendamento\\Agendamento.csproj|solutionrelative:agendamento\\data\\dbseeder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -18,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,7 +34,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "TarefaResponseDto.cs",
+              "DocumentMoniker": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\Agendamento\\DTOs\\TarefaResponseDto.cs",
+              "RelativeDocumentMoniker": "Agendamento\\DTOs\\TarefaResponseDto.cs",
+              "ToolTip": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\Agendamento\\DTOs\\TarefaResponseDto.cs",
+              "RelativeToolTip": "Agendamento\\DTOs\\TarefaResponseDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-10T21:21:53.811Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "20260708201924_InitialCreate.cs",
               "DocumentMoniker": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\Agendamento\\Migrations\\20260708201924_InitialCreate.cs",
               "RelativeDocumentMoniker": "Agendamento\\Migrations\\20260708201924_InitialCreate.cs",
@@ -42,13 +59,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "DbSeeder.cs",
               "DocumentMoniker": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\Agendamento\\Data\\DbSeeder.cs",
               "RelativeDocumentMoniker": "Agendamento\\Data\\DbSeeder.cs",
               "ToolTip": "C:\\Users\\Geraldo Luiz\\Desktop\\Projetos Pessoais\\Agendamento\\Agendamento\\Data\\DbSeeder.cs",
               "RelativeToolTip": "Agendamento\\Data\\DbSeeder.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAASAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-08T20:16:39.831Z",
               "EditorCaption": ""
